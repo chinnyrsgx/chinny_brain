@@ -1,0 +1,38 @@
+# Weekly: create or update one open issue listing concepts expired or due for re-verification.
+# Opens an issue rather than committing, so no bot needs to bypass branch protection.
+name: shelf-life-sweep
+on:
+  schedule:
+    - cron: "0 1 * * 1"   # Mondays 01:00 UTC = 09:00 MYT
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: pip install pyyaml
+      - name: Build the register
+        run: |
+          : > register.md
+          for b in bundles/*/; do
+            python bundles/rsgx-ai-programme/tools/check_governance.py "${b%/}" --stale-report >> register.md
+          done
+          cat register.md
+      - name: Create or update the "Shelf-life register" issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TITLE="Shelf-life register"
+          N=$(gh issue list --state open --search "\"$TITLE\" in:title" --json number,title \
+                --jq "map(select(.title == \"$TITLE\")) | .[0].number // empty")
+          if [ -n "$N" ]; then
+            gh issue edit "$N" --body-file register.md
+          else
+            gh issue create --title "$TITLE" --body-file register.md
+          fi

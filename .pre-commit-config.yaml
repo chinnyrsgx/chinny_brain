@@ -1,0 +1,27 @@
+# Local convenience. The authoritative gate is .github/workflows/okf-validate.yml.
+# Install: pip install pre-commit pyyaml && pre-commit install
+repos:
+  - repo: local
+    hooks:
+      - id: okf-validate
+        name: OKF v0.2 validate (house rules)
+        entry: python bundles/rsgx-ai-programme/tools/validate_okf.py bundles/rsgx-ai-programme
+        language: python
+        additional_dependencies: [pyyaml]
+        pass_filenames: false
+      - id: okf-index
+        name: Regenerate index.md (re-stage if it changes files)
+        entry: python bundles/rsgx-ai-programme/tools/build_index.py bundles/rsgx-ai-programme
+        language: python
+        additional_dependencies: [pyyaml]
+        pass_filenames: false
+      - id: governance
+        name: Governance rules (provenance, ratification, shelf life)
+        entry: python bundles/rsgx-ai-programme/tools/check_governance.py bundles/rsgx-ai-programme
+        language: python
+        additional_dependencies: [pyyaml]
+        pass_filenames: false
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks

@@ -1,0 +1,15 @@
+# Last matching rule wins. Owners must be users or teams with write access.
+# CODEOWNERS only blocks merges when branch protection requires code-owner review
+# (private repos: paid plan needed). The owner cannot approve their own PRs, so a
+# second approver is required on every path.
+
+*                                               @OWNER_HANDLE @SECOND_APPROVER_HANDLE
+
+# Decisions and blockers: changes need a reviewer other than the author
+/bundles/rsgx-ai-programme/decisions/           @OWNER_HANDLE @SECOND_APPROVER_HANDLE
+/bundles/rsgx-ai-programme/open-questions/      @OWNER_HANDLE @SECOND_APPROVER_HANDLE
+
+# Protect the gate itself
+/.github/                                       @OWNER_HANDLE @SECOND_APPROVER_HANDLE
+/bundles/rsgx-ai-programme/tools/               @OWNER_HANDLE @SECOND_APPROVER_HANDLE
+/.pre-commit-config.yaml                        @OWNER_HANDLE @SECOND_APPROVER_HANDLE
