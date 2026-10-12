@@ -3,7 +3,8 @@ type: Reference
 title: "A2A-aligned agent platforms for RSGx: state of play, options and recommendation (28 Sep 2026, mirrored)"
 description: "Full text of Claude's 28 Sep research report on organisation-wide agent platforms and A2A, mirrored so findings and assessments can cite it."
 tags: [agent-platform, a2a, mcp, reference, research, time-sensitive]
-status: draft
+status: deprecated
+superseded_by: /references/agent-platform-report-2026-10-12.md
 provenance: P
 generated: { by: claude/claude-opus-5-5, at: 2026-09-30T02:00:00Z }
 stale_after: 2027-03-01T00:00:00Z
