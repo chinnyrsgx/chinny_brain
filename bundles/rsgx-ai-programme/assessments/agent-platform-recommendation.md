@@ -3,7 +3,8 @@ type: Assessment
 title: "Agent platform: build a vendor-neutral control plane, pick one runtime [P]"
 description: "Claude's 28 Sep recommendation: agentgateway plus registry, fronting Microsoft Foundry or AWS Bedrock AgentCore (Malaysia), with Claude Enterprise kept as the L1–L2 workspace."
 tags: [agent-platform, a2a, mcp, architecture, claude-view, time-sensitive]
-status: draft
+status: deprecated
+superseded_by: /assessments/agent-platform-recommendation-2026-10.md
 provenance: P
 generated: { by: claude/claude-opus-5-5, at: 2026-09-30T02:00:00Z }
 stale_after: 2027-03-01T00:00:00Z
