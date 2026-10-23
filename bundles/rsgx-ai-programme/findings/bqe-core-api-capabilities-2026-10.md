@@ -1,7 +1,7 @@
 ---
 type: Finding
 title: "BQE CORE public API: what it exposes, and the limits on it"
-description: "As at 23 Oct 2026: BQE CORE offers a REST API over its practice-management records, with OAuth 2.0 (user-delegated only), 100 requests a minute and webhooks. The enumeration values themselves are not verified."
+description: "As at 23 Oct 2026: BQE CORE offers a REST API over its practice-management records, with OAuth 2.0 (user-delegated only), 100 requests a minute and webhooks. Sign-in, the regional endpoint and the rate-limit headers were confirmed by one live read-only call; the enumeration values are not yet verified."
 tags: [bqe-core, integration, api, enumerations, oauth, time-sensitive]
 status: draft
 generated: { by: claude/claude-opus-5-5, at: 2026-10-23T03:00:00Z }
@@ -28,11 +28,19 @@ sources:
   - id: bqe-sample
     resource: https://github.com/BQEDeveloper/CoreApi-Asp.net-Sample
     title: BQEDeveloper — CoreApi ASP.NET sample app (last commit 29 Jul 2019)
+  - id: bqe-docs-config
+    resource: https://api-explorer.bqecore.com/assets/config.json
+    title: BQE CORE API Explorer — published Postman environment (fetched 23 Oct 2026)
+  - id: smoke-test
+    resource: https://github.com/rsgx-org-ai/bqe-data-platform/blob/claude/sleepy-carson-gqhs3s/docs/phase0/smoke-test-2026-10-23.md
+    title: Phase 0 smoke test — one live read-only call, 23 Oct 2026
 ---
 
 # Evidence quality: read this first
 
-This session's network policy blocked every `*.bqecore.com` and `corehelpcenter.bqe.com` host. No BQE documentation page was fetched directly. Every claim below comes from search-engine extracts of BQE's own pages, or from BQE's public GitHub sample app, which was cloned and read.[^bqe-sample] Treat the whole finding as secondary evidence until someone re-reads the primary pages.
+**Update, 23 Oct 2026 (later the same day).** The documentation hosts were then allowed, and the owner ran one live, read-only call against RSGx's CORE company.[^smoke-test] The section *Confirmed by live call* below supersedes the earlier secondary claims wherever they differ. The enumeration values are still unverified: the Enumerations page loads its content from `api-documentation.bqecore.com`, which was still blocked.
+
+The original note follows. At first, this session's network policy blocked every `*.bqecore.com` and `corehelpcenter.bqe.com` host. No BQE documentation page was fetched directly. Every claim below comes from search-engine extracts of BQE's own pages, or from BQE's public GitHub sample app, which was cloned and read.[^bqe-sample] Treat the whole finding as secondary evidence until someone re-reads the primary pages.
 
 **The enumeration values were not obtained.** The [Enumerations page](https://api-explorer.bqecore.com/docs/enumerations) was the subject of the request. Only enum *names* surfaced, and the values of one enum. Do not code against any value listed here.
 
@@ -83,6 +91,23 @@ These enum names were seen on resource pages. Values are not verified.[^bqe-enum
 - **Rate limit:** 100 requests a minute, per app per user, for apps registered after 21 Feb 2023. Older apps should read the `X-Rate-Limit` headers.[^bqe-rate-limits] When the limit is exceeded the API returns `429` with a `Retry-After` header in seconds. `/version` and `/health` are exempt.
 - **Webhooks:** each event is sent as a JSON `POST`. Any 2xx response counts as delivered. A failed delivery is attempted 5 times in total, 30 seconds apart. The payload is validated with the app's client secret, or the client ID if the app has no secret.[^bqe-webhooks]
 
+# Confirmed by live call, 23 Oct 2026
+
+One call was made from the owner's machine with a Native App (PKCE, no client secret) requesting `read:core` only. Only statuses, headers and field names were recorded; no record values.[^smoke-test]
+
+- **Sign-in works as documented.** Discovery at `https://api-identity.bqecore.com/idp/.well-known/openid-configuration` returned 200. The token response granted exactly `read:core`, with `expires_in` 3600 seconds. No refresh token was issued: the docs say only Regular Web App and Web App (FAPI/PAR) types receive refresh tokens.
+- **The API host is regional.** The token response's `endpoint` field returned `https://syd-api.bqecore.com.au/api/`, not the `https://api.bqecore.com/api/` in BQE's published Postman environment.[^bqe-docs-config] RSGx's CORE data appears to be hosted in Sydney. Clients must use the `endpoint` value, never a fixed host.
+- **Version:** `GET /version` returned `2026.10.1.0`.
+- **Rate-limit headers are present:** `X-Rate-Limit-Limit: 1m`, `X-Rate-Limit-Remaining: 99` after one call, and `X-Rate-Limit-Reset` as an ISO-8601 UTC time. This is consistent with 100 requests a minute.
+- **Cloudflare blocks default HTTP client signatures.** The first run's calls returned 403, Cloudflare error 1010 ("blocked access based on your browser's signature"), for Python's default `Python-urllib` user agent. An honest, descriptive `User-Agent` passed. Every RSGx client must set one; do not imitate a browser.
+- **`read:core` exposes commercial data.** The first `activity` record carried 32 fields, including `costRate`, `billRate` and `overTimeBillRate`, plus account and group IDs and audit fields (`lastUpdated`, `lastUpdatedById`, `version`, `objectState`). Read-only access is not low-sensitivity access, so field-level policy in the platform is essential.
+
+Also confirmed from the documentation, now reachable:
+
+- **No sandbox is published.** The current docs and their Postman environment describe production only. The 2019 sandbox hosts no longer answer.
+- **Dates and times default to US Pacific time.** The `X-UTC-OFFSET` header (minutes) changes it.
+- **App types:** Regular Web App (client secret, optional PKCE), Web App FAPI/PAR (secret, PKCE and PAR required), JavaScript App and Native App (no secret).
+
 # Relevance to RSGx (challenge)
 
 Nothing in this bundle yet says RSGx uses BQE CORE or plans an integration. That should be confirmed before any of this informs a design. If it does:
@@ -102,3 +127,5 @@ These claims come from vendor documentation. The rate-limit article is roughly t
 [^bqe-webhooks]: BQE CORE API Explorer — Webhooks
 [^bqe-changelog]: BQE CORE APIs Update Log
 [^bqe-sample]: BQEDeveloper — CoreApi ASP.NET sample app (last commit 29 Jul 2019)
+[^bqe-docs-config]: BQE CORE API Explorer — published Postman environment (fetched 23 Oct 2026)
+[^smoke-test]: Phase 0 smoke test — one live read-only call, 23 Oct 2026

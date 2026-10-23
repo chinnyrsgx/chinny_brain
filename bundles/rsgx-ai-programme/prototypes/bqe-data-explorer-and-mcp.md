@@ -54,7 +54,11 @@ Read this section in full before writing code.
 | Query parameters `fields`, `where`, `orderBy`, `page` | The visual builder compiles to these, so there is no client-side filtering of large sets |
 | Webhooks: JSON `POST`, 5 attempts 30 s apart, signed with the client secret | Optional change feed for cache invalidation (Phase 3+) |
 | BQE may accept or deny developer access, and integrated apps must be approved by BQE[^bqe-api-agreement] | Start the approval in Phase 0. It is on the critical path. |
-| Separate sandbox and production hosts | CI and development use only the sandbox, or a mock |
+| No published sandbox (current docs show production only; the 2019 sandbox hosts no longer answer) | CI uses a recorded mock only. Ask BQE for a sandbox or trial company before Phase 1. |
+| The API host is regional: the token response's `endpoint` gave `syd-api.bqecore.com.au` for RSGx (confirmed 23 Oct 2026) | Store the `endpoint` per BQE connection; never hard-code a host. It also informs D4: the data appears to be hosted in Sydney. |
+| Cloudflare blocks default HTTP client signatures (error 1010; confirmed 23 Oct 2026) | Every client sets an honest, descriptive `User-Agent`. Never imitate a browser. |
+| Dates and times default to US Pacific time | Send `X-UTC-OFFSET` on every request; test date boundaries |
+| Only Regular Web App and Web App (FAPI/PAR) types get refresh tokens; the Phase 0 test used a Native App | The platform registers a Regular Web App (client secret in Key Vault, PKCE on) or FAPI/PAR |
 
 # Proposed architecture
 
@@ -100,7 +104,8 @@ Fit with the programme: the [agent platform recommendation](/assessments/agent-p
 
 1. Re-read the BQE pages directly: the enumerations, every resource page, authentication, filtering, rate limits, webhooks and the changelog. This needs network access to `api-explorer.bqecore.com` and `corehelpcenter.bqe.com`. Mirror them into `references/` and update the [finding](/findings/bqe-core-api-capabilities-2026-10.md). Find out whether BQE publishes an OpenAPI/Swagger document. If it does, the catalogue is generated from it, and the generated catalogue replaces any hand-built one.
 2. Confirm the production API base URL, the scopes needed per resource (including the additional `ePaymentLink` scope), and whether the rate limit applies per app per user to every endpoint.
-3. Create the BQE developer account, register a **sandbox** app with `read:core offline_access`, and start BQE's application approval. Record the approval's status and dates.
+3. Create the BQE developer account, register an app, make one read-only call, and start BQE's application approval. Record the approval's status and dates.
+   *Done in part on 23 Oct 2026:* a Native App made one live `read:core` call from the owner's machine. See the [finding](/findings/bqe-core-api-capabilities-2026-10.md). BQE's approval process has not been started.
 4. Record decisions D1–D7.
 
 **Exit:** the finding is re-verified from primary sources, a sandbox app exists and has made one successful call, and D1–D7 are recorded.
