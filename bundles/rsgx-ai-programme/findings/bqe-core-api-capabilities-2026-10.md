@@ -1,7 +1,7 @@
 ---
 type: Finding
 title: "BQE CORE public API: what it exposes, and the limits on it"
-description: "As at 23 Oct 2026: BQE CORE offers a REST API over its practice-management records, with OAuth 2.0 (user-delegated only), 100 requests a minute and webhooks. Sign-in, the regional endpoint and the rate-limit headers were confirmed by one live read-only call; the enumeration values are not yet verified."
+description: "As at 23 Oct 2026: BQE CORE offers a REST API over its practice-management records, with OAuth 2.0 (user-delegated only), 100 requests a minute and webhooks. Sign-in, the regional endpoint and the rate-limit headers were confirmed by one live read-only call. All 72 enumerations and 542 models were retrieved from BQE's documentation API."
 tags: [bqe-core, integration, api, enumerations, oauth, time-sensitive]
 status: draft
 generated: { by: claude/claude-opus-5-5, at: 2026-10-23T03:00:00Z }
@@ -31,6 +31,9 @@ sources:
   - id: bqe-docs-config
     resource: https://api-explorer.bqecore.com/assets/config.json
     title: BQE CORE API Explorer — published Postman environment (fetched 23 Oct 2026)
+  - id: bqe-catalogue
+    resource: https://github.com/rsgx-org-ai/bqe-data-platform/tree/claude/sleepy-carson-gqhs3s/docs/bqe-catalogue
+    title: BQE CORE API catalogue snapshot (enumerations, models, APIs), 23 Oct 2026
   - id: smoke-test
     resource: https://github.com/rsgx-org-ai/bqe-data-platform/blob/claude/sleepy-carson-gqhs3s/docs/phase0/smoke-test-2026-10-23.md
     title: Phase 0 smoke test — one live read-only call, 23 Oct 2026
@@ -38,7 +41,7 @@ sources:
 
 # Evidence quality: read this first
 
-**Update, 23 Oct 2026 (later the same day).** The documentation hosts were then allowed, and the owner ran one live, read-only call against RSGx's CORE company.[^smoke-test] The section *Confirmed by live call* below supersedes the earlier secondary claims wherever they differ. The enumeration values are still unverified: the Enumerations page loads its content from `api-documentation.bqecore.com`, which was still blocked.
+**Update, 23 Oct 2026 (later the same day).** The documentation hosts were then allowed, and the owner ran one live, read-only call against RSGx's CORE company.[^smoke-test] The section *Confirmed by live call* below supersedes the earlier secondary claims wherever they differ. Once `api-documentation.bqecore.com` was allowed, the full catalogue was retrieved: 72 enumerations with values, 542 models and 86 APIs. BQE publishes no OpenAPI file; this JSON catalogue is the equivalent. A snapshot is kept in `rsgx-org-ai/bqe-data-platform` under `docs/bqe-catalogue/`.[^bqe-catalogue] The enum table below predates it and is kept for the record.
 
 The original note follows. At first, this session's network policy blocked every `*.bqecore.com` and `corehelpcenter.bqe.com` host. No BQE documentation page was fetched directly. Every claim below comes from search-engine extracts of BQE's own pages, or from BQE's public GitHub sample app, which was cloned and read.[^bqe-sample] Treat the whole finding as secondary evidence until someone re-reads the primary pages.
 
@@ -100,6 +103,7 @@ One call was made from the owner's machine with a Native App (PKCE, no client se
 - **Version:** `GET /version` returned `2026.10.1.0`.
 - **Rate-limit headers are present:** `X-Rate-Limit-Limit: 1m`, `X-Rate-Limit-Remaining: 99` after one call, and `X-Rate-Limit-Reset` as an ISO-8601 UTC time. This is consistent with 100 requests a minute.
 - **Cloudflare blocks default HTTP client signatures.** The first run's calls returned 403, Cloudflare error 1010 ("blocked access based on your browser's signature"), for Python's default `Python-urllib` user agent. An honest, descriptive `User-Agent` passed. Every RSGx client must set one; do not imitate a browser.
+- **`read:core` can reach personal and banking data.** Per the model catalogue, `Employee` carries `ssn`, `bankAccount`, `bankRouting`, `salary` and `dateOfBirth`, and `Vendor` all of those except `ssn`. Every request must name its fields, and the policy layer must deny these by default.[^bqe-catalogue]
 - **`read:core` exposes commercial data.** The first `activity` record carried 32 fields, including `costRate`, `billRate` and `overTimeBillRate`, plus account and group IDs and audit fields (`lastUpdated`, `lastUpdatedById`, `version`, `objectState`). Read-only access is not low-sensitivity access, so field-level policy in the platform is essential.
 
 Also confirmed from the documentation, now reachable:
@@ -128,4 +132,5 @@ These claims come from vendor documentation. The rate-limit article is roughly t
 [^bqe-changelog]: BQE CORE APIs Update Log
 [^bqe-sample]: BQEDeveloper — CoreApi ASP.NET sample app (last commit 29 Jul 2019)
 [^bqe-docs-config]: BQE CORE API Explorer — published Postman environment (fetched 23 Oct 2026)
+[^bqe-catalogue]: BQE CORE API catalogue snapshot (enumerations, models, APIs), 23 Oct 2026
 [^smoke-test]: Phase 0 smoke test — one live read-only call, 23 Oct 2026
