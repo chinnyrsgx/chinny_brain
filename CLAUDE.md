@@ -54,3 +54,10 @@ Before ending any session that changed content:
 2. Add or update open questions for anything left unresolved.
 3. List any claims whose `stale_after` falls within 90 days (`--stale-report`).
 4. State in the PR description which items are [P]/[I] and so need the owner's attention.
+
+## Prompt log
+
+Every prompt typed into Claude Code is captured to `prompt-log/YYYY/MM/YYYY-MM-DD.md` (AWST date) by the UserPromptSubmit hook in `.claude/hooks/log_prompt.py`, registered in `.claude/settings.json`. The log sits outside `bundles/` and is not OKF content. See `prompt-log/README.md`.
+
+- At session close, fill in **Problem**, **Solution** and **Changed** (one or two plain lines each) for that day's entries, add topic tags to the day file's frontmatter, and commit `prompt-log/` with the session's branch.
+- Never log secrets, client documents or personal data. Name an attachment on an `**Attachments (named, not stored):**` line and never store it. Where something is unknown, write "not confirmed" rather than guess.
